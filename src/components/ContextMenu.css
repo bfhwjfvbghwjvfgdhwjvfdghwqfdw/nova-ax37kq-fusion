@@ -1,0 +1,175 @@
+/* Context menu animations */
+@keyframes menuPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes submenuPop {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.context-menu-container {
+  animation: menuPop 0.15s var(--ease-spring) forwards;
+}
+
+.context-menu-submenu {
+  animation: submenuPop 0.15s var(--ease-spring) forwards;
+  pointer-events: auto;
+}
+
+/* Submenu parent item indicator */
+.menu-item-with-submenu {
+  position: relative;
+}
+
+.menu-item-with-submenu::after {
+  content: '›';
+  position: absolute;
+  right: 12px;
+  opacity: 0.4;
+  transition: opacity 0.15s, transform 0.15s;
+  font-size: 1.2em;
+}
+
+.menu-item-with-submenu:hover::after {
+  opacity: 0.8;
+  transform: translateX(2px);
+}
+
+/* Submenu backdrop for better visibility */
+.context-menu-submenu::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.context-menu-submenu:hover::before {
+  opacity: 1;
+}
+
+/* Context menu items */
+.menu-item {
+  position: relative;
+  transition: all 0.15s var(--ease-smooth);
+}
+
+.menu-item:hover {
+  transform: translateX(2px);
+}
+
+.menu-item:active {
+  transform: scale(0.98);
+}
+
+/* Submenu indicators */
+.submenu-indicator {
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+.menu-item:hover .submenu-indicator {
+  opacity: 0.8;
+}
+
+/* Context menu dividers */
+.context-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+
+/* Context menu icons */
+.menu-item svg {
+  transition: transform 0.15s var(--ease-spring);
+}
+
+.menu-item:hover svg {
+  transform: scale(1.1);
+}
+
+/* Special menu items */
+.menu-item-destructive {
+  color: rgb(239, 68, 68);
+}
+
+.menu-item-destructive:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Disabled state */
+.menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.menu-item:disabled:hover {
+  background: transparent;
+  transform: none;
+}
+
+.menu-item:disabled svg {
+  opacity: 0.5;
+}
+
+/* Keyboard shortcuts */
+.menu-shortcut {
+  opacity: 0.4;
+  font-size: 0.85em;
+  transition: opacity 0.15s;
+}
+
+.menu-item:hover .menu-shortcut {
+  opacity: 0.8;
+}
+
+/* Additional glass effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced backdrop blur for context menu */
+.context-menu-main {
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Submenu specific styling */
+.context-menu-submenu.glass-panel {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Section headers in submenu */
+.submenu-section-header {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.5rem 0.75rem 0.25rem;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}

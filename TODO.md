@@ -1,0 +1,5 @@
+- [x] Analyze build errors
+- [ ] Fix loadSavedTheme function scope issue
+- [ ] Fix incorrect settings saving logic in loadSavedTheme
+- [ ] Ensure all top-level functions are properly defined
+- [ ] Test build after fixes

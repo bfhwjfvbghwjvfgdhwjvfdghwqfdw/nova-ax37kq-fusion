@@ -1,0 +1,34 @@
+appId: com.voidsystems.xvser
+productName: Xvser
+asar: true
+files:
+  - dist/**
+  - dist-electron/**
+  - build/**
+  - package.json
+directories:
+  output: release
+win:
+  icon: build/icon.ico
+  executableName: Xvser
+  publisherName: "Voidsystems"
+  sign: null
+  forceCodeSigning: false
+  target:
+    - nsis
+  artifactName: "Xvser-Setup-${version}.exe"
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Xvser"
+  runAfterFinish: true
+  license: build/license.txt
+  include: build/installer.nsh
+publish:
+  provider: github
+  owner: YOUR_GH_ORG_OR_USER
+  repo: xvser
+  releaseType: release

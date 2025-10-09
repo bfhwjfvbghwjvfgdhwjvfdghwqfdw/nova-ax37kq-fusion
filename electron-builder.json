@@ -1,0 +1,55 @@
+{
+  "appId": "com.voidsystems.xvser",
+  "productName": "Xvser",
+  "asar": true,
+  "forceCodeSigning": false,
+  "buildVersion": "1",
+  "compression": "maximum",
+  "files": [
+    "dist/**",
+    "dist-electron/**",
+    "build/**",
+    "package.json"
+  ],
+  "directories": {
+    "output": "release"
+  },
+  "win": {
+    "icon": "build/icon.ico",
+    "executableName": "Xvser",
+    "sign": null,
+    "forceCodeSigning": false,
+    "verifyUpdateCodeSignature": false,
+    "target": [
+      {
+        "target": "nsis-web",
+        "arch": ["x64"]
+      }
+    ],
+    "artifactName": "Xvser-WebSetup-${version}.exe"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "perMachine": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Xvser",
+    "runAfterFinish": true,
+    "differentialPackage": false,
+    "license": "build/license.txt",
+    "include": "build/installer.nsh"
+  },
+  "nsisWeb": {
+    "oneClick": false,
+    "artifactName": "Xvser-WebInstaller-${version}.exe",
+    "differentialPackage": true
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "bfhwjfvbghwjvfgdhwjvfdghwqfdw",
+    "repo": "nova-ax37kq-fusion",
+    "private": false,
+    "releaseType": "release"
+  }
+}

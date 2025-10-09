@@ -1,0 +1,526 @@
+import React, { useState, useRef, useCallback, memo } from 'react'
+import type { DirEntry, ViewOptions } from '@/types/api'
+import { formatDate } from '@/utils/date'
+import { formatSize } from '@/utils/size'
+import { removeExtension } from '@/utils/path'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import { FixedSizeList as VList, FixedSizeGrid as VGrid } from 'react-window'
+
+type FileListProps = {
+  entries: DirEntry[]
+  loading: boolean
+  selected: Set<string>
+  cutItems?: Set<string>
+  icons: Record<string, string | null>
+  viewOptions: ViewOptions
+  settings: any
+  allSelected: boolean
+  onToggleSelectAll: () => void
+  onToggleSelect: (path: string) => void
+  onEntryClick: (entry: DirEntry, event: React.MouseEvent) => void
+  onEntryDoubleClick: (entry: DirEntry) => void
+  onEntryAuxClick?: (entry: DirEntry, event: React.MouseEvent) => void
+  onContextMenu: (event: React.MouseEvent, entry: DirEntry) => void
+  onVisibleRangeChange?: (start: number, end: number) => void
+}
+
+// Memoized list item components for each view type
+const DetailsViewItem = memo(({ entry, style, selected, cutItems, viewOptions, settings, onToggleSelect, onEntryClick, onEntryDoubleClick, onEntryAuxClick, onContextMenu, renderIcon }: any) => (
+  <div
+    key={entry.path}
+    data-path={entry.path}
+    onClick={evt => onEntryClick(entry, evt)}
+    onDoubleClick={() => onEntryDoubleClick(entry)}
+    onAuxClick={evt => onEntryAuxClick?.(entry, evt)}
+    onContextMenu={evt => onContextMenu(evt, entry)}
+    className={`file-list-item ${selected.has(entry.path) ? 'bg-white/10' : ''} ${cutItems?.has(entry.path) ? 'opacity-50 cut-item' : ''} hover:bg-white/5 cursor-default grid items-center border-b border-white/5`}
+    style={{ ...style, gridTemplateColumns: viewOptions.showItemCheckboxes ? '40px 1fr 6rem 6rem 8rem' : '40px 1fr 6rem 6rem 8rem' }}
+  >
+    <div className="px-3 py-2">
+      {viewOptions.showItemCheckboxes && (
+        <input 
+          type="checkbox"
+          checked={selected.has(entry.path)}
+          onChange={() => onToggleSelect(entry.path)}
+        />
+      )}
+    </div>
+    <div className="px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className={`leading-none flex items-center justify-center ${
+          viewOptions.iconSize === 'small' ? 'w-4 h-4' :
+          viewOptions.iconSize === 'medium' ? 'w-6 h-6' :
+          viewOptions.iconSize === 'large' ? 'w-8 h-8' :
+          'w-10 h-10'
+        }`}>
+          {renderIcon(entry)}
+        </span>
+        <span className="truncate">
+          {settings.showFileExtensions ? entry.name : (entry.isDir ? entry.name : removeExtension(entry.name))}
+        </span>
+      </div>
+    </div>
+    <div className="px-3 py-2 text-white/60">
+      {entry.isDir ? 'File folder' : (entry.ext ? entry.ext.toUpperCase().slice(1) + ' File' : 'File')}
+    </div>
+    <div className="px-3 py-2 text-right text-white/60">
+      {entry.isDir ? '' : formatSize(entry.size, settings.fileSizeFormat === 'binary')}
+    </div>
+    <div className="px-3 py-2 text-white/60">
+      {formatDate(entry.mtimeMs, settings.dateFormat)}
+    </div>
+  </div>
+));
+
+const GridViewItem = memo(({ entry, style, selected, cutItems, viewOptions, settings, onToggleSelect, onEntryClick, onEntryDoubleClick, onEntryAuxClick, onContextMenu, renderIcon }: any) => (
+  <div
+    key={entry.path}
+    data-path={entry.path}
+    style={style}
+    onClick={evt => onEntryClick(entry, evt)}
+    onDoubleClick={() => onEntryDoubleClick(entry)}
+    onAuxClick={evt => onEntryAuxClick?.(entry, evt)}
+    onContextMenu={evt => onContextMenu(evt, entry)}
+    className={`file-list-item relative group flex flex-col items-center gap-2 p-3 rounded-lg cursor-default ${
+      selected.has(entry.path) ? 'bg-white/10' : ''
+    } ${cutItems?.has(entry.path) ? 'opacity-50 cut-item' : ''} hover:bg-white/5`}
+  >
+    {viewOptions.showItemCheckboxes && (
+      <input 
+        type="checkbox"
+        checked={selected.has(entry.path)}
+        onChange={() => onToggleSelect(entry.path)}
+        className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+    )}
+    <div className={`flex items-center justify-center ${
+      viewOptions.iconSize === 'small' ? 'w-12 h-12' :
+      viewOptions.iconSize === 'medium' ? 'w-16 h-16' :
+      viewOptions.iconSize === 'large' ? 'w-20 h-20' :
+      'w-24 h-24'
+    }`}>
+      {renderIcon(entry)}
+    </div>
+    <div className="text-xs text-center w-full truncate px-1">
+      {settings.showFileExtensions ? entry.name : (entry.isDir ? entry.name : removeExtension(entry.name))}
+    </div>
+  </div>
+));
+
+const ListViewItem = memo(({ entry, style, selected, cutItems, viewOptions, settings, onToggleSelect, onEntryClick, onEntryDoubleClick, onEntryAuxClick, onContextMenu, renderIcon }: any) => (
+  <div
+    key={entry.path}
+    data-path={entry.path}
+    style={style}
+    onClick={evt => onEntryClick(entry, evt)}
+    onDoubleClick={() => onEntryDoubleClick(entry)}
+    onAuxClick={evt => onEntryAuxClick?.(entry, evt)}
+    onContextMenu={evt => onContextMenu(evt, entry)}
+    className={`file-list-item group flex items-center gap-3 px-3 ${selected.has(entry.path) ? 'bg-white/10' : ''} ${cutItems?.has(entry.path) ? 'opacity-50 cut-item' : ''} hover:bg-white/5 cursor-default`}
+  >
+    {viewOptions.showItemCheckboxes && (
+      <input 
+        type="checkbox"
+        checked={selected.has(entry.path)}
+        onChange={() => onToggleSelect(entry.path)}
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+    )}
+    <div className={`flex items-center justify-center ${
+      viewOptions.iconSize === 'small' ? 'w-4 h-4' :
+      viewOptions.iconSize === 'medium' ? 'w-6 h-6' :
+      viewOptions.iconSize === 'large' ? 'w-8 h-8' :
+      'w-10 h-10'
+    }`}>
+      {renderIcon(entry)}
+    </div>
+    <span className="flex-1 truncate">
+      {settings.showFileExtensions ? entry.name : (entry.isDir ? entry.name : removeExtension(entry.name))}
+    </span>
+    <span className="text-xs text-white/60">
+      {entry.isDir ? 'File folder' : formatSize(entry.size, settings.fileSizeFormat === 'binary')}
+    </span>
+  </div>
+));
+
+export const FileList = memo(function FileList(props: FileListProps) {
+  const {
+    entries,
+    loading,
+    selected,
+    cutItems,
+    icons,
+    viewOptions,
+    settings,
+    allSelected,
+    onToggleSelectAll,
+    onToggleSelect,
+    onEntryClick,
+    onEntryDoubleClick,
+    onContextMenu,
+    onVisibleRangeChange,
+    onEntryAuxClick,
+  } = props;
+
+  // State and handlers for drag selection
+  const [dragSelectionBox, setDragSelectionBox] = useState<{ start: { x: number; y: number }; current: { x: number; y: number } } | null>(null);
+  const selectionRef = useRef<Set<string>>(new Set());
+  const initialSelectionRef = useRef<Set<string>>(new Set());
+
+  const getIconKey = useCallback((path: string): string => {
+    const sizeHint = viewOptions.iconSize === 'extra-large' || viewOptions.iconSize === 'large' ? 'large' :
+                     viewOptions.iconSize === 'medium' ? 'normal' : 'small';
+    return path + ':' + sizeHint;
+  }, [viewOptions.iconSize]);
+
+  const renderIcon = useCallback((entry: DirEntry): JSX.Element => {
+    const iconKey = getIconKey(entry.path);
+    const iconData = icons[iconKey];
+    if (iconData) {
+      return <img src={iconData} alt="icon" className="w-full h-full rounded-sm" />;
+    }
+    return <span className={`${
+      viewOptions.iconSize === 'small' ? 'text-2xl' :
+      viewOptions.iconSize === 'medium' ? 'text-3xl' :
+      viewOptions.iconSize === 'large' ? 'text-4xl' :
+      'text-5xl'
+    }`}>{entry.isDir ? '📁' : '📄'}</span>;
+  }, [getIconKey, icons, viewOptions.iconSize]);
+
+  const handleDragStart = useCallback((event: React.MouseEvent) => {
+    if (!settings.enableDragSelect || event.button !== 0) return;
+
+    // Store initial selection state
+    initialSelectionRef.current = new Set(selected);
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left + event.currentTarget.scrollLeft;
+    const y = event.clientY - rect.top + event.currentTarget.scrollTop;
+    setDragSelectionBox({ start: { x, y }, current: { x, y } });
+
+    const onMouseMove = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const container = target.closest('.file-list-container');
+      if (!container) return;
+      
+      const rect = container.getBoundingClientRect();
+      setDragSelectionBox(prev => {
+        if (!prev) return null;
+        const current = {
+          x: e.clientX - rect.left + container.scrollLeft,
+          y: e.clientY - rect.top + container.scrollTop
+        };
+
+        // Calculate selection
+        const box = {
+          left: Math.min(prev.start.x, current.x),
+          top: Math.min(prev.start.y, current.y),
+          right: Math.max(prev.start.x, current.x),
+          bottom: Math.max(prev.start.y, current.y)
+        };
+
+        // Get all file list items and check intersection
+        const items = container.querySelectorAll('.file-list-item');
+        const newSelection = new Set<string>();
+        
+        items.forEach(item => {
+          const rect = item.getBoundingClientRect();
+          if (rect.left < box.right &&
+              rect.right > box.left &&
+              rect.top < box.bottom &&
+              rect.bottom > box.top) {
+            const path = item.getAttribute('data-path');
+            if (path) newSelection.add(path);
+          }
+        });
+
+        selectionRef.current = newSelection;
+        return { ...prev, current };
+      });
+    };
+
+    const onMouseUp = () => {
+      // Apply the selection
+      const toAdd = new Set<string>();
+      const toRemove = new Set<string>();
+
+      // If holding Ctrl, toggle the selection
+      if (event.ctrlKey) {
+        selectionRef.current.forEach(path => {
+          if (selected.has(path)) {
+            toRemove.add(path);
+          } else {
+            toAdd.add(path);
+          }
+        });
+      }
+      // If holding Shift, add to the selection
+      else if (event.shiftKey) {
+        selectionRef.current.forEach(path => {
+          if (!selected.has(path)) {
+            toAdd.add(path);
+          }
+        });
+      }
+      // Otherwise, replace the selection
+      else {
+        initialSelectionRef.current.forEach(path => {
+          if (!selectionRef.current.has(path)) {
+            toRemove.add(path);
+          }
+        });
+        selectionRef.current.forEach(path => {
+          if (!selected.has(path)) {
+            toAdd.add(path);
+          }
+        });
+      }
+
+      toRemove.forEach(path => onToggleSelect(path));
+      toAdd.forEach(path => onToggleSelect(path));
+
+      setDragSelectionBox(null);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, [settings.enableDragSelect, selected, onToggleSelect]);
+
+  const renderSelectionBox = useCallback(() => {
+    if (!dragSelectionBox) return null;
+
+    const left = Math.min(dragSelectionBox.start.x, dragSelectionBox.current.x);
+    const top = Math.min(dragSelectionBox.start.y, dragSelectionBox.current.y);
+    const width = Math.abs(dragSelectionBox.current.x - dragSelectionBox.start.x);
+    const height = Math.abs(dragSelectionBox.current.y - dragSelectionBox.start.y);
+
+    return (
+      <div
+        className="selection-box"
+        style={{
+          position: 'absolute',
+          left: left + 'px',
+          top: top + 'px',
+          width: width + 'px',
+          height: height + 'px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          pointerEvents: 'none'
+        }}
+      />
+    );
+  }, [dragSelectionBox]);
+
+  if (loading) {
+    return <div className="text-center py-8 text-white/30">Loading...</div>;
+  }
+
+  if (entries.length === 0) {
+    return <div className="text-center py-8 text-white/30">No files in this folder</div>;
+  }
+
+  // Common wrapper for drag selection
+  const FileListWrapper = memo(({ children }: { children: React.ReactNode }) => (
+    <div 
+      className="file-list-container relative w-full h-full" 
+      onMouseDown={handleDragStart}
+    >
+      {children}
+      {renderSelectionBox()}
+    </div>
+  ));
+
+  const renderViewProps = {
+    selected,
+    cutItems,
+    viewOptions,
+    settings,
+    onToggleSelect,
+    onEntryClick,
+    onEntryDoubleClick,
+    onEntryAuxClick,
+    onContextMenu,
+    renderIcon
+  };
+
+  // Virtualized Details view
+  if (viewOptions.layout === 'details') {
+    const rowHeight = 36;
+
+    return (
+      <FileListWrapper>
+        <div className="w-full h-full flex flex-col text-xs">
+          <div className="bg-white/5 sticky top-0 z-10 border-b border-white/10 grid" style={{ gridTemplateColumns: viewOptions.showItemCheckboxes ? '40px 1fr 6rem 6rem 8rem' : '40px 1fr 6rem 6rem 8rem' }}>
+            {viewOptions.showItemCheckboxes ? (
+              <div className="text-left px-3 py-2">
+                <input type="checkbox" checked={allSelected} onChange={onToggleSelectAll}/>
+              </div>
+            ) : (
+              <div className="text-left px-3 py-2"></div>
+            )}
+            <div className="text-left px-3 py-2 font-semibold">Name</div>
+            <div className="text-left px-3 py-2 font-semibold">Type</div>
+            <div className="text-right px-3 py-2 font-semibold">Size</div>
+            <div className="text-left px-3 py-2 font-semibold">Date modified</div>
+          </div>
+          <div className="flex-1 min-h-0">
+            <AutoSizer>
+              {({ height, width }) => (
+                <VList
+                  height={height}
+                  width={width}
+                  itemCount={entries.length}
+                  itemSize={rowHeight}
+                  overscanCount={10}
+                  onItemsRendered={({ visibleStartIndex, visibleStopIndex }) => {
+                    onVisibleRangeChange?.(visibleStartIndex, visibleStopIndex);
+                  }}
+                >
+                  {({ index, style }) => (
+                    <DetailsViewItem 
+                      entry={entries[index]}
+                      style={style}
+                      {...renderViewProps}
+                    />
+                  )}
+                </VList>
+              )}
+            </AutoSizer>
+          </div>
+        </div>
+      </FileListWrapper>
+    );
+  }
+
+  // Virtualized Grid/Tiles view
+  if (viewOptions.layout === 'tiles' || viewOptions.layout === 'grid') {
+    const cellWidth = viewOptions.iconSize === 'small' ? 100 : 
+                     viewOptions.iconSize === 'medium' ? 120 : 
+                     viewOptions.iconSize === 'large' ? 140 : 160;
+    const cellHeight = viewOptions.iconSize === 'small' ? 120 : 
+                      viewOptions.iconSize === 'medium' ? 140 : 
+                      viewOptions.iconSize === 'large' ? 160 : 180;
+
+    return (
+      <FileListWrapper>
+        <AutoSizer>
+          {({ height, width }) => {
+            const columnCount = Math.max(1, Math.floor(width / cellWidth));
+            const rowCount = Math.ceil(entries.length / columnCount);
+            return (
+              <VGrid
+                height={height}
+                width={width}
+                columnCount={columnCount}
+                columnWidth={cellWidth}
+                rowCount={rowCount}
+                rowHeight={cellHeight}
+                overscanRowCount={3}
+                overscanColumnCount={1}
+                onItemsRendered={({ visibleRowStartIndex, visibleRowStopIndex, visibleColumnStartIndex, visibleColumnStopIndex }) => {
+                  const start = visibleRowStartIndex * columnCount + visibleColumnStartIndex;
+                  const stop = Math.min(entries.length - 1, visibleRowStopIndex * columnCount + visibleColumnStopIndex);
+                  onVisibleRangeChange?.(Math.max(0, start), Math.max(0, stop));
+                }}
+              >
+                {({ columnIndex, rowIndex, style }) => {
+                  const index = rowIndex * columnCount + columnIndex;
+                  if (index >= entries.length) return <div style={style as React.CSSProperties} />;
+                  return (
+                    <GridViewItem 
+                      entry={entries[index]}
+                      style={style}
+                      {...renderViewProps}
+                    />
+                  );
+                }}
+              </VGrid>
+            );
+          }}
+        </AutoSizer>
+      </FileListWrapper>
+    );
+  }
+
+  // Virtualized List view
+  if (viewOptions.layout === 'list') {
+    const rowHeight = 36;
+    return (
+      <FileListWrapper>
+        <AutoSizer>
+          {({ height, width }) => (
+            <VList
+              height={height}
+              width={width}
+              itemCount={entries.length}
+              itemSize={rowHeight}
+              overscanCount={10}
+              onItemsRendered={({ visibleStartIndex, visibleStopIndex }) => {
+                onVisibleRangeChange?.(visibleStartIndex, visibleStopIndex);
+              }}
+            >
+              {({ index, style }) => (
+                <ListViewItem 
+                  entry={entries[index]}
+                  style={style}
+                  {...renderViewProps}
+                />
+              )}
+            </VList>
+          )}
+        </AutoSizer>
+      </FileListWrapper>
+    );
+  }
+
+  // Content view (non-virtualized two-column, typically fewer items)
+  return (
+    <FileListWrapper>
+      <div className="grid grid-cols-2 p-4 gap-4">
+        {entries.map(e => (
+          <div
+            key={e.path}
+            data-path={e.path}
+            onClick={evt => onEntryClick(e, evt)}
+            onDoubleClick={() => onEntryDoubleClick(e)}
+            onAuxClick={evt => onEntryAuxClick?.(e, evt)}
+            onContextMenu={evt => onContextMenu(evt, e)}
+            className={`file-list-item group flex items-start gap-3 p-3 rounded-lg ${
+              selected.has(e.path) ? 'bg-white/10' : ''
+            } ${cutItems?.has(e.path) ? 'opacity-50 cut-item' : ''} hover:bg-white/5 cursor-default`}
+          >
+            {viewOptions.showItemCheckboxes && (
+              <input 
+                type="checkbox"
+                checked={selected.has(e.path)}
+                onChange={() => onToggleSelect(e.path)}
+                className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            )}
+            <div className={`flex items-center justify-center ${
+              viewOptions.iconSize === 'small' ? 'w-8 h-8' :
+              viewOptions.iconSize === 'medium' ? 'w-10 h-10' :
+              viewOptions.iconSize === 'large' ? 'w-12 h-12' :
+              'w-14 h-14'
+            }`}>
+              {renderIcon(e)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm truncate">
+                {settings.showFileExtensions ? e.name : (e.isDir ? e.name : removeExtension(e.name))}
+              </div>
+              <div className="text-xs text-white/60 mt-1">
+                {e.isDir ? 'File folder' : `${e.ext ? e.ext.toUpperCase().slice(1) + ' File' : 'File'} • ${formatSize(e.size, settings.fileSizeFormat === 'binary')}`}
+              </div>
+              <div className="text-xs text-white/60 mt-0.5">
+                {formatDate(e.mtimeMs, settings.dateFormat)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </FileListWrapper>
+  );
+});
