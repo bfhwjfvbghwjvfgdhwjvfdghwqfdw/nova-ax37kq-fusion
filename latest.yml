@@ -1,0 +1,14 @@
+version: 0.1.0
+files:
+  - url: Xvser-WebInstaller-0.1.0.exe
+    sha512: Tu0b7Wst7ZbsOgIUL7ZRFmoInGUBnn3I2lppzUqvDC31S0t1RHMqxo42qylxAPsmPXbZn2b3+ujZLw3bUExuhA==
+path: Xvser-WebInstaller-0.1.0.exe
+sha512: Tu0b7Wst7ZbsOgIUL7ZRFmoInGUBnn3I2lppzUqvDC31S0t1RHMqxo42qylxAPsmPXbZn2b3+ujZLw3bUExuhA==
+packages:
+  x64:
+    size: 104468473
+    sha512: CBr2Wtn/sRiTwY4gcqJ1kVOhk5m1NF5IY7BdvKtz4JjTvhGDHUiTmKFFt+CJEUOk20IJ5PSPENA0TqG71qHNUQ==
+    blockMapSize: 109839
+    path: xvser-0.1.0-x64.nsis.7z
+    file: xvser-0.1.0-x64.nsis.7z
+releaseDate: '2025-10-09T14:41:53.737Z'
