@@ -1,7 +1,7 @@
 {
   "name": "xvser",
   "productName": "Xvser",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "private": true,
   "description": "Xvser – Modern Windows file manager built by Voidsystems",
   "author": "Voidsystems",
@@ -18,10 +18,17 @@
     "fix-icon": "node scripts\\fix-icon.js",
     "pack:win": "electron-builder --win nsis",
     "dist:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis --publish never",
-    "dist:win:fast": "npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis --publish never --config.compression=store",
+    "dist:win:fast": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis --publish never --config.compression=store",
     "dist:portable": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win portable --publish never",
     "dist:squirrel": "npm run build && node scripts\\squirrel-build.js",
-    "dist:web": "npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis-web --publish never"
+    "dist:web": "npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis-web --publish never",
+    "publish": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -Force",
+    "publish:major": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -ReleaseType major -Force",
+    "publish:minor": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -ReleaseType minor -Force",
+    "publish:patch": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -ReleaseType patch -Force",
+    "publish:fast": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -Fast -Force",
+    "publish:test": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1 -DryRun",
+    "publish:manual": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.11",
