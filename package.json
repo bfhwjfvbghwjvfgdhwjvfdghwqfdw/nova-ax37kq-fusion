@@ -1,7 +1,7 @@
 {
   "name": "xvser",
   "productName": "Xvser",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "private": true,
   "description": "Xvser – Modern Windows file manager built by Voidsystems",
   "author": "Voidsystems",
@@ -31,6 +31,14 @@
     "publish:manual": "powershell -ExecutionPolicy Bypass -File ./publish-release.ps1"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.0",
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
     "@ffmpeg/ffmpeg": "^0.12.11",
     "@ffmpeg/util": "^0.12.1",
     "@fontsource-variable/inter": "^5.2.8",
