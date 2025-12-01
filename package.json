@@ -1,7 +1,7 @@
 {
   "name": "xvser",
   "productName": "Xvser",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "private": true,
   "description": "Xvser – Modern Windows file manager built by Voidsystems",
   "author": "Voidsystems",
@@ -56,6 +56,7 @@
     "fs-extra": "^11.2.0",
     "fuse.js": "^7.0.0",
     "idb": "^8.0.0",
+    "koffi": "^2.14.1",
     "lucide-react": "^0.453.0",
     "pdfjs-dist": "^4.6.82",
     "prismjs": "^1.29.0",
